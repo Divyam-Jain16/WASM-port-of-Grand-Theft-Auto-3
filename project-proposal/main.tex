@@ -1,242 +1,167 @@
-\documentclass[11pt,a4paper]{article}
+\documentclass[11pt]{article}
 \usepackage[margin=1in]{geometry}
-\usepackage{hyperref}
 \usepackage{enumitem}
-\usepackage{graphicx}
-\usepackage{xcolor}
-
-% -----------------------------------------------------
-% bvraghav-tiet-ucs503p-article.sty
-% -----------------------------------------------------
-
-% Variable: Lab Instructor
-\makeatletter \newcommand{\BvrSetLabInstructor}[1]{%
-  \gdef\Bvr@LabInstructor{#1}}
-% default
-\newcommand{\Bvr@LabInstructor}{Dr. Raghav %
-  B. Venkataramaiyer}
-% public accessor
-\newcommand{\BvrLabInstructorValue}{\Bvr@LabInstructor}
-\makeatother
-
-% Add subtitle
-\usepackage{titling}
-% -- Set title bold
-\pretitle{\begin{center}\bfseries\fontsize{18bp}{18bp}\selectfont}
-\makeatletter
-\newcommand{\BvrSubtitle}[1]{%
-  \posttitle{%
-    \par\end{center}
-    \begin{center}\large#1\end{center}
-    \vskip 0.5em}%
-}
-\makeatother
-
-% Hints in the section title(s)
-\newcommand{\BvrHint}[1]{%
-  {\normalfont\normalsize\itshape\hfill #1}}
-
-% -----------------------------------------------------
-
-\title{Grievance-Resolution System for a Tier-2/3 City}
-
-\BvrSetLabInstructor{Dr. Raghav B. Venkataramaiyer}
-
-\BvrSubtitle{%
-  Project Proposal for UCS503P  \\
-  Submitted to: \BvrLabInstructorValue \\ \bfseries
-  Thapar Institute of Engineering and Technology% 
-}
-
-\author{
-  Vidya Vaidyanathan, CSED%
-  \thanks{Roll No: \texttt{1024030xxx}, %
-    Email: \texttt{vvaidhanathan\_be24\@thapar.edu}}
-  \and 
-  Bhanurekha Ganesan, CSED%
-  \thanks{Roll No: \texttt{1024030xxx}, %
-    Email: \texttt{bganesan\_be24\@thapar.edu}}
-}
-
-\date{\today}
+\usepackage{textcomp}
+\usepackage{hyperref}
+\hypersetup{hidelinks}
 
 \begin{document}
-\maketitle
 
-\section{Higher-order goal%
-  \BvrHint{\ldots secondary framing}}
-This project aims to improve sustainable urban
-governance by reducing the time and effort required to
-resolve citizen issues. While the topic is broader than
-any single municipality, the immediate engineering
-objective is to translate \emph{efficient public
-  service delivery} into a measurable, deployable
-software solution.
+\begin{center}
+{\LARGE\bfseries A WebAssembly Port of Grand Theft Auto III, Implemented in Java}\\[0.6em]
+UCS503\\
+Submitted to: Professor Nisha Thakur\\
+\textbf{Thapar Institute of Engineering and Technology}\\[1em]
+Antriksh (1024031034)
+\qquad\qquad
+Divyam Jain (1024031032)
+\end{center}
 
-\section{Time-to-value %
-\BvrHint{\ldots primary heuristic}}
-\begin{itemize}[leftmargin=0.7cm]
-    \item We will deliver meaningful increments quickly by prototyping the core user workflow and validating it with users within a short iteration window.
-    \item We will prioritize fast feedback over perfection by using weekly iterations (and targeting CI-backed automation early) to reduce release friction.
-    \item Success is defined by what can be delivered and measured in the first iteration, then improved based on user feedback.
+\section{Higher-order goal}
+This project aims to contribute to the preservation and cross-platform accessibility of a specific piece of legacy software by porting the Grand Theft Auto III engine to the browser via WebAssembly (WASM), so it can run directly inside a standard web browser without any native installation step. The engine is reimplemented natively in Java, informed by publicly documented reverse-engineering research (e.g., the work behind the \emph{re3} project), with only a thin HTML shell around it.
+
+\section{Time-to-value}
+\begin{itemize}[itemsep=2pt]
+  \item We will deliver meaningful increments quickly by getting a minimal engine subset to boot in-browser within a short iteration window, before attempting full feature parity.
+  \item We will prioritize fast feedback over perfection by using weekly iterations and CI-backed Java/TeaVM builds to reduce release friction.
+  \item Success is defined by what can be run and measured in the browser in the first iteration (boot to an interactive state), then improved based on profiling and playtesting.
 \end{itemize}
 
 \section{Problem Statement}
-Citizens in a tier-2/3 Indian city face delays and uncertainty when reporting local issues (e.g., streetlight outages, water leakage, garbage accumulation, road potholes). Common pain points include:
-\begin{itemize}[leftmargin=0.7cm]
-    \item \textbf{Fragmentation:} complaints are often made via multiple channels (calls, social media, paper forms), causing lost context.
-    \item \textbf{Low transparency:} citizens cannot easily see the status of their complaint (e.g., ``received'', ``assigned'', ``in progress'', ``resolved'').
-    \item \textbf{Slow coordination:} departments/field teams lack a unified, trackable workflow with clear ownership.
-    \item \textbf{Poor data quality:} duplicate or incomplete reports force rework and extend resolution time.
+Grand Theft Auto III, like most software of its era, was written against platform APIs such as native windowing, OpenGL/Direct3D, local-disk file I/O, and native threading. None of these have a direct browser equivalent, so the engine cannot run in a web browser without a porting layer.
+
+We implement the engine from scratch in Java, informed by publicly documented reverse-engineering research into the original engine's file formats and game logic (e.g., the documentation produced by the \emph{re3} project), rather than compiling or copying any existing C++ source.
+
+Bringing the engine to the browser requires closing three technology gaps:
+\begin{itemize}[itemsep=2pt]
+  \item \textbf{Rendering}: there is no native OpenGL/Direct3D in a browser; rendering code must target WebGL from Java.
+  \item \textbf{Audio}: native audio backends have no browser equivalent; audio must be driven through the Web Audio API from Java.
+  \item \textbf{Filesystem and concurrency}: the original engine assumes local-disk access and native threads, while browsers sandbox both behind browser-native storage and a restricted threading model.
 \end{itemize}
 
-\textbf{Why this matters now (contextual relevance):} In an urban setting with limited staff bandwidth, even small process improvements can noticeably reduce resolution delays and repeated submissions.
+\textbf{Why this matters now (contextual relevance):} a working browser build removes installation friction entirely, makes the engine trivially shareable for study, demonstration, or preservation, and is a concrete, well-scoped systems-porting exercise that exercises real toolchain, performance, and platform-compatibility engineering.
 
-\section{Proposed Solution %
-\BvrHint{\ldots Software Proposition}}
+\section{Proposed Solution}
+
 \subsection{Overview}
-Build a \textbf{web-based} ``Grievance-to-Resolution'' system with the following components:
-\begin{itemize}[leftmargin=0.7cm]
-    \item \textbf{Citizen submission portal:} users submit an issue with photo (optional), category, and locality/ward.
-    \item \textbf{Automated triage:} basic duplicate detection and completeness checks.
-    \item \textbf{Department workflow:} assign issues to relevant department/team and update statuses.
-    \item \textbf{Status transparency:} citizens track status and receive notifications when resolved.
-    \item \textbf{Admin/ops dashboard:} performance summaries (resolution time, backlog).
+Build a browser-playable WebAssembly build of the GTA III engine with the following components:
+\begin{itemize}[itemsep=2pt]
+  \item \textbf{Language}: the engine and all game logic are implemented natively in Java; the browser side is a single, static HTML file plus a small amount of CSS.
+  \item \textbf{Build pipeline}: TeaVM compiles the Java bytecode to a \texttt{.wasm} module plus a thin JS loader, so the same Java source also runs as an ordinary JVM build for local testing.
+  \item \textbf{Rendering}: TeaVM's JSO interop module provides typed Java bindings to the WebGL2 API; rendering code is ordinary Java calling those bindings.
+  \item \textbf{Audio}: JSO bindings to the Web Audio API, called from Java.
+  \item \textbf{Input and asset loading}: JSO bindings to DOM keyboard/mouse/gamepad events and the browser's File API/IndexedDB, all invoked from Java -- see \S10 on copyright constraints for how assets are supplied.
 \end{itemize}
 
 \subsection{Core workflow}
-\begin{enumerate}[leftmargin=0.7cm]
-    \item Citizen creates a complaint and receives a complaint ID immediately.
-    \item System validates completeness and suggests possible duplicates (lightweight similarity on text/category and approximate location).
-    \item Department staff update status (Received $\rightarrow$ Assigned $\rightarrow$ In Progress $\rightarrow$ Resolved).
-    \item Citizen views status updates and resolution notes.
+\begin{enumerate}[itemsep=2pt]
+  \item The HTML page loads the TeaVM-generated WASM module and its small JS loader, then hands control to the Java entry point.
+  \item The user is prompted to supply local data files (from their own legally owned copy of GTA III); files are read via the File API and cached in IndexedDB, both called from Java through JSO, so future loads skip re-upload.
+  \item The engine's main loop runs inside the browser as a Java method bound to \texttt{requestAnimationFrame} via JSO.
+  \item Rendering, audio, input, and save/load proceed through the Java-side bindings described above.
 \end{enumerate}
 
-\subsection{Operational constraints for an educational, tier-2/3 setting}
-\begin{itemize}[leftmargin=0.7cm]
-    \item Keep the solution usable on low-to-mid range devices via responsive web design.
-    \item Avoid dependence on advanced research algorithms; focus on workflow, automation, and system correctness.
-    \item Design for deployability using common web hosting and managed databases.
+\subsection{Operational constraints for an educational, tier-2/3-hardware-friendly setting}
+\begin{itemize}[itemsep=2pt]
+  \item Target acceptable performance on mid-range consumer hardware in current Chrome and Firefox.
+  \item Avoid dependence on novel rendering research; focus on toolchain correctness, Java-to-browser interop, and measured performance.
+  \item Design for deployability on plain static web hosting (e.g.\ GitHub Pages) -- no server-side compute or asset hosting required at runtime.
 \end{itemize}
 
-\section{Solution Approach %
-\BvrHint{\ldots Engineering focus}}
-This is an engineering course project, so we focus on scalable administrative and workflow aspects rather than novel algorithm research.
+\section{Solution Approach}
+This is an engineering porting project: the objective is a working, performant WASM build of the GTA III engine, implemented in Java, not new rendering or AI research.
 
-\subsection{Duplicate/quality assistance %
-\BvrHint{\ldots non-research}}
-Duplicate detection will be heuristic-based:
-\begin{itemize}[leftmargin=0.7cm]
-    \item Normalize text (category + short description keywords).
-    \item Use a simple similarity measure (e.g., token overlap / TF-IDF cosine with threshold) without claiming state-of-the-art.
-    \item Show top candidate duplicates to staff for decision; never fully auto-delete or auto-reject.
+\subsection{Engine implementation}
+\begin{itemize}[itemsep=2pt]
+  \item Implement the engine's core systems (world state, entity logic, a lightweight renderer) as plain Java classes, organized into a small number of packages.
+  \item Keep the code within TeaVM's supported JDK subset from the start (TeaVM has limited support for reflection and some standard-library classes), verified early via CI rather than discovered late.
+  \item Isolate all browser-specific calls behind a thin JSO-binding layer, so the engine logic itself stays ordinary, testable Java.
 \end{itemize}
 
-\subsection{Web architecture %
-\BvrHint{\ldots web-based solution}}
-A typical 3-tier web architecture:
-\begin{itemize}[leftmargin=0.7cm]
-    \item \textbf{Frontend:} responsive UI for citizens and staff (status pages, submission form, dashboard).
-    \item \textbf{Backend API:} authentication, complaint submission, status transitions, assignment logic.
-    \item \textbf{Database:} store users, complaints, status history, attachments metadata.
+\subsection{Web architecture}
+\begin{itemize}[itemsep=2pt]
+  \item \textbf{Frontend}: a single static \texttt{index.html} with a canvas element, a file-input for local data assets, and a small settings panel (resolution, audio volume).
+  \item \textbf{Build system}: Maven or Gradle with the TeaVM compiler plugin, producing \texttt{.wasm}/\texttt{.js} artifacts; no server-side runtime component is required.
+  \item \textbf{Storage}: browser IndexedDB, accessed from Java via JSO, caches user-supplied data assets across sessions.
 \end{itemize}
 
 \subsection{CI/CD and fast delivery enabler}
-CI/CD will be used to:
-\begin{itemize}[leftmargin=0.7cm]
-    \item Automatically build and run tests on every change.
-    \item Produce repeatable deployment artifacts to staging.
-    \item Enable safe and frequent releases of incremental features.
+\begin{itemize}[itemsep=2pt]
+  \item CI builds the TeaVM target on every commit and runs a headless smoke test (module loads, reaches an initialized render state).
+  \item CD publishes build artifacts to a static-hosting staging environment for manual playtesting.
+  \item Automated checks track WASM output size, boot time, and a scripted FPS benchmark.
 \end{itemize}
 
-\section{Evaluation Criterion %
-\BvrHint{\ldots measurable and attributable}}
-We define success using measurable metrics tied to the core workflow.
+\section{Evaluation Criterion}
 
 \subsection{Primary evaluation metric}
-\textbf{Time-to-acknowledgement (TTA):} time between complaint submission and ``Received/Assigned'' status creation in the system.
-\begin{itemize}[leftmargin=0.7cm]
-    \item Target: median TTA $\le$ 2 hours during pilot window.
-    \item Attribution: measured from database timestamps (submission vs. first status update by staff).
+Boot success and in-browser frame rate: whether the engine reaches an interactive state, and the frame rate sustained once there.
+\begin{itemize}[itemsep=2pt]
+  \item Target: reach an interactive state in under 15 seconds after assets are loaded.
+  \item Target: median $\geq$ 30 FPS at 720p during a standard test scene, in the pilot browser targets.
+  \item Attribution: measured via an in-app frame-time counter logged during test sessions, and a boot-time timestamp from module init to first interactive frame.
 \end{itemize}
 
 \subsection{Secondary evaluation metrics}
-\begin{itemize}[leftmargin=0.7cm]
-    \item \textbf{Resolution time reduction:} reduce time-to-resolved compared to baseline process (even if baseline is collected via survey).
-    \item \textbf{Duplicate rate:} percentage of complaints flagged as duplicates and resolved without rework.
-    \item \textbf{User clarity:} citizen-reported clarity of status using a simple 1--5 feedback question.
-    \item \textbf{Reliability:} availability of staging/production for login and submission during business hours (e.g., $\ge$ 99\% uptime in pilot).
+\begin{itemize}[itemsep=2pt]
+  \item \textbf{Load time}: elapsed time from asset upload/cache-hit to playable state.
+  \item \textbf{Output size}: compiled \texttt{.wasm} size relative to a plain JVM build of the same engine code.
+  \item \textbf{Feature parity}: a checklist of rendering, audio, save/load, and input features verified against the documented original behavior.
+  \item \textbf{Cross-browser compatibility}: a pass/fail matrix across Chrome, Firefox, and Safari.
 \end{itemize}
 
-\subsection{Pilot validation plan %
-\BvrHint{\ldots high-level}}
-\begin{itemize}[leftmargin=0.7cm]
-    \item Recruit 10--20 pilot users (citizens) and 3--5 staff roles (department simulation if real staff unavailable).
-    \item Compare metrics before/after within the iteration window by logging baseline estimates via short interviews or existing process observations.
+\subsection{Pilot validation plan}
+\begin{itemize}[itemsep=2pt]
+  \item Internal playtesting with 3--5 users who each supply assets from their own legally owned copy of GTA III.
+  \item Compare FPS and load-time metrics against a plain-JVM build of the same engine on matched hardware as a baseline.
 \end{itemize}
 
-\section{Scalability %
-\BvrHint{\ldots with foresight}}
-The proposition should scale in both theoretical and practical senses.
-
-\begin{enumerate}[leftmargin=0.7cm]
-    \item \textbf{Scalable (theoretically):} The system should support growth in number of complaints and concurrent dashboard usage by:
-    \begin{itemize}[leftmargin=0.7cm]
-        \item decoupling components (frontend/backend),
-        \item enabling pagination and indexing for common queries,
-        \item using stateless API design.
-    \end{itemize}
-    
-    \item \textbf{Operationally deployable (practically):} The system should run on common web hosting:
-    \begin{itemize}[leftmargin=0.7cm]
-        \item managed database,
-        \item containerized or platform-hosted deployment,
-        \item CI/CD pipeline for staging/production.
-    \end{itemize}
+\section{Scalability}
+\begin{enumerate}[itemsep=2pt]
+  \item \textbf{Scalable (theoretically)}: keep the rendering, audio, input, and storage bindings modular and decoupled from game logic, so the engine can absorb a larger asset set or higher-resolution rendering targets without a structural rewrite.
+  \item \textbf{Operationally deployable (practically)}: static-hosting-only deployment, versioned and reproducible build artifacts, and a CI/CD pipeline that regenerates a fresh WASM build on every change.
 \end{enumerate}
 
 \section{Engine availability heuristic}
-A mature set of ``engines'' (tooling/services) is available to implement this as a web-based project:
-\begin{itemize}[leftmargin=0.7cm]
-    \item Web framework for REST APIs and templated/reactive pages.
-    \item Managed relational or document database.
-    \item Authentication approach (token-based or session-based).
-    \item Object storage for optional attachments (or local storage for pilot).
-    \item Test framework for unit/integration tests.
-    \item CI runner and staging deployment target.
+A mature set of tooling is available to implement this project entirely in Java, with a thin HTML shell:
+\begin{itemize}[itemsep=2pt]
+  \item TeaVM, for compiling Java bytecode to WebAssembly (with a JS fallback path).
+  \item TeaVM's JSO module, for typed Java bindings to the DOM, WebGL2, Web Audio, and browser storage APIs.
+  \item Maven or Gradle with the TeaVM plugin, for build automation.
+  \item JUnit, for engine-logic unit tests that run on the plain JVM, ahead of and independent from the browser build.
+  \item Publicly documented reverse-engineering research on GTA III's file formats and engine behavior, used as a specification to implement against in Java.
+  \item Browser developer tools, for WASM debugging and profiling.
 \end{itemize}
-We will use these mature components to focus on workflow design, correctness, and measurement rather than inventing new infrastructure.
+We will use these mature components to focus on the Java engine, the browser bindings, and measurement, rather than inventing new infrastructure.
 
-\section{Project scope and deliverables %
-\BvrHint{\ldots iteration-friendly}}
-\subsection{Initial deliverable %
-\BvrHint{\ldots first iteration}}
-\begin{itemize}[leftmargin=0.7cm]
-    \item Citizen submission form + complaint ID generation
-    \item Staff workflow: update status and assignment
-    \item Citizen status page: view timeline/history
-    \item Basic logging and timestamps for TTA measurement
-    \item CI: build + backend unit tests + linting
-    \item CD to staging with a single command or pipeline job
+\section{Project Scope and Deliverables}
+
+\subsection{Initial deliverable}
+\begin{itemize}[itemsep=2pt]
+  \item TeaVM build pipeline compiling a minimal Java engine subset to WASM.
+  \item Canvas boots, WebGL2 context initializes via JSO, and a static test scene renders.
+  \item Basic input passthrough (keyboard/gamepad) verified end-to-end.
+  \item CI: automated TeaVM build plus a headless boot smoke test on every push.
 \end{itemize}
 
 \subsection{Subsequent deliverables}
-\begin{itemize}[leftmargin=0.7cm]
-    \item Lightweight duplicate suggestions with staff review
-    \item Notification layer (email/SMS optional in later iteration; can start with in-app notifications)
-    \item Admin dashboard for metrics and backlog
-    \item Improved search/filtering and indexed queries for scale readiness
+\begin{itemize}[itemsep=2pt]
+  \item Full game loop (main menu $\rightarrow$ gameplay) running in-browser.
+  \item A clean separation between the JSO binding layer (rendering, audio, storage, input) and game logic, for maintainability.
+  \item Local asset-loading UI with IndexedDB persistence.
+  \item Save/load support using browser storage, and a performance tuning pass against the FPS/memory budget defined in \S6.
 \end{itemize}
 
-\section{Risks and mitigations}
-\begin{itemize}[leftmargin=0.7cm]
-    \item \textbf{Data privacy / consent:} minimize collected data; keep attachments optional; store only what is needed.
-    \item \textbf{Staff adoption:} provide an easy UI for status updates; keep workflow steps minimal; include shortcuts.
-    \item \textbf{Evaluation measurement ambiguity:} instrument timestamps and define clear status transitions before development begins.
-    \item \textbf{Operational issues in pilot:} use staging early; ensure CI/CD produces repeatable deployments.
+\section{Risks and Mitigations}
+\begin{itemize}[itemsep=3pt]
+  \item \textbf{Copyright and legal use}: GTA III's original code and data assets remain proprietary to Take-Two/Rockstar. \emph{Mitigation} -- our Java engine code is an original implementation written against publicly documented reverse-engineering research, not compiled or copied from any existing source; no copyrighted assets or original binaries are bundled, hosted, or redistributed. End users must supply data files from their own legally purchased copy of the game, loaded locally in their own browser session.
+  \item \textbf{Reliance on third-party research}: the reverse-engineering documentation this project's specifications are based on (e.g.\ the research behind \emph{re3}) has itself previously been the subject of a DMCA takedown against that project's source code. \emph{Mitigation} -- rely only on publicly available documentation of file formats and behavior, keep our own Java implementation and repository independent of that project's source, and be prepared to revisit specific details if a rights holder objects.
+  \item \textbf{TeaVM/JDK compatibility}: TeaVM does not support the full JDK (notably, limited reflection and no true browser-side multithreading). \emph{Mitigation} -- restrict engine code to TeaVM's supported subset from day one, checked by CI, and design the main loop as single-threaded with cooperative scheduling.
+  \item \textbf{Performance overhead}: Java-to-WASM via TeaVM can carry more overhead than hand-written C/Rust. \emph{Mitigation} -- profile early, keep hot loops (rendering, physics-lite updates) allocation-light, and avoid unnecessary object indirection in per-frame code.
+  \item \textbf{Browser storage limits}: large asset sets may exceed IndexedDB quotas on some browsers. \emph{Mitigation} -- support streaming/partial loads and surface clear quota warnings to the user.
 \end{itemize}
 
 \section{Summary}
-This project proposes a deployable web platform to reduce grievance handling delays in a tier-2/3 city context. It meets the course criteria by emphasizing time-to-value through rapid iterations, implementing CI/CD to support frequent safe releases, and using measurable evaluation criteria (especially time-to-acknowledgement). It remains focused on engineering workflow and scalability readiness rather than research-driven novelty.
+This project proposes an original Java reimplementation of the Grand Theft Auto III engine, informed by public reverse-engineering research, compiled to WebAssembly via TeaVM, so it can run directly in a browser without native installation. Implementation is entirely in Java, with only a thin HTML shell. It follows the course's emphasis on time-to-value through an early bootable increment, CI/CD-backed iterative delivery, and measurable evaluation criteria (boot success, frame rate, load time). It is scoped as an engineering porting effort: no original game assets are redistributed by the project, and rights-holder copyright is respected throughout -- end users provide their own legally owned data files locally.
 
 \end{document}
